@@ -2,6 +2,7 @@ package com.asalcedo.hellofirebase
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
 import com.asalcedo.hellofirebase.databinding.ActivityMainBinding
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -21,12 +22,16 @@ class MainActivity : AppCompatActivity() {
         val database = Firebase.database.reference
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val data = snapshot.getValue(String::class.java)
-                binding.tvData.text = "Firebase Remote: $data"
+                if (snapshot.exists()) {
+                    val data = snapshot.getValue(String::class.java)
+                    binding.tvData.text = "Firebase Remote: $data"
+                } else {
+                    binding.tvData.text = "Ruta sin datos."
+                }
             }
 
             override fun onCancelled(error: DatabaseError) {
-
+                Toast.makeText(this@MainActivity, "Error al leer datos", Toast.LENGTH_SHORT).show()
             }
 
         }
@@ -39,6 +44,21 @@ class MainActivity : AppCompatActivity() {
         binding.btnSend.setOnClickListener {
             val data = binding.etData.text.toString()
             dataRef.setValue(data)
+                .addOnSuccessListener {
+                    Toast.makeText(this@MainActivity, "Enviado...", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener {
+                    Toast.makeText(this@MainActivity, "Error al enviar", Toast.LENGTH_SHORT).show()
+                }
+                .addOnCompleteListener {
+                    Toast.makeText(this@MainActivity, "Terminado", Toast.LENGTH_SHORT).show()
+                }
+        }
+
+        //Delete register in RealTime Database
+        binding.btnSend.setOnLongClickListener {
+            dataRef.removeValue()
+            true
         }
 
     }
